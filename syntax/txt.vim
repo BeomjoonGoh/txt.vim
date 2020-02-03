@@ -1,115 +1,69 @@
 " Vim universal .txt syntax file
-" Language:     txt 1.2
-" Maintainer:   Tomasz Kalkosiński <spoonman@op.pl>
-" Last change:  3 Jan 2007
+" Language:     txt
+" Maintainer:   Beomjoon Goh
+" Last Change:  9 Dec 2019
 "
-" This is an universal syntax script for all text documents, logs, changelogs, readmes
-" and all other strange and undetected filetypes.
-" The goal is to keep it very simple. It colors numbers, operators, signs,
-" cites, brackets, delimiters, comments, TODOs, errors, debug, changelog tags
-" and basic smileys ;]
-"
-" Changelog:
-" 1.2 (03-01-2007)
-"                       Add: Changelog tags: add, chg, fix, rem, del linked with Keyword
-"                       Add: note to txtTodo group
-"
-" 1.1 (01-07-2006)	Add: International cites
-" 			Chg: txtString color to Normal
-"	 		Chg: Simplified number coloring working better now
-"
-" 1.0 (28-04-2006)	Initial upload
-"
-" For version 5.x: Clear all syntax items
-" For version 6.x: Quit when a syntax file was already loaded
-if version < 600
-  syntax clear
-elseif exists("b:current_syntax")
+" This is modified version of 'Vim universal .txt syntax file' by Tomasz Kalkosiński.
+" See
+"   http://www.vim.org/scripts/script.php?script_id=1532
+"   https://github.com/vim-scripts/txt.vim
+
+if exists("b:current_syntax")
   finish
 endif
 
 syn case ignore
 
 syn cluster txtAlwaysContains add=txtTodo,txtError
+syn cluster txtContains       add=txtNumber,txtOperator,txtLink
 
-syn cluster txtContains add=txtNumber,txtOperator,txtLink
 
-syn match txtOperator "[~\-_+*<>\[\]{}=|#@$%&\\/:&\^\.,!?]"
+" Common strings & Cites
+syn match   txtString       "[[:alpha:]]" contains=txtOperator
+syn region  txtCite         start="\""    end="\""        contains=@txtContains,@txtAlwaysContains
 
-" Common strings
-syn match txtString "[[:alpha:]]" contains=txtOperator
-
-" Numbers
-"syn match txtNumber "\d\(\.\d\+\)\?"
-syn match txtNumber "\d"
-
-" Cites
-syn region txtCite      matchgroup=txtOperator  start="\""      end="\""        contains=@txtContains,@txtAlwaysContains
-
-" utf8 international cites:
-" ‚ ’   U+201A (8218), U+2019 (8217)    Polish single quotation
-" „ ”   U+201E (8222), U+201d (8221)    Polish double quotation
-" « »   U+00AB (171),  U+00BB (187)     French quotes
-" ‘ ’   U+2018 (8216), U+2019 (8217)    British quotes
-" „ “   U+201E (8222), U+2019 (8217)    German quotes
-" ‹ ›   U+2039 (8249), U+203A (8250)    French quotes
-syn region txtCite      matchgroup=txtOperator  start="[‚„«‘„‹]"        end="[’”»’“›]"  contains=@txtContains,@txtAlwaysContains
-
-syn region txtCite      matchgroup=txtOperator  start="\(\s\|^\)\@<='"  end="'"         contains=@txtContains,@txtAlwaysContains
+" Opertors & Numbers
+syn match   txtOperator     "[~\-_+*<>=|#@$%&\\/:&\^\.,!?]"
+syn match   txtNumber       "\d"
 
 " Comments
-syn region txtComment   start="("       end=")"         contains=@txtContains,txtCite,@txtAlwaysContains
-syn region txtComments  matchgroup=txtComments start="\/\/"     end="$"         contains=@txtAlwaysContains     oneline
-syn region txtComments  start="\/\*"    end="\*\/"      contains=@txtAlwaysContains
+syn region  txtBlockComment start="\/\*"  end="\*\/"      contains=@txtAlwaysContains
+syn region  txtComment      matchgroup=txtComment     start="#"     end="$"         contains=@txtAlwaysContains              oneline
+"syn region  txtDelims       matchgroup=txtOperator    start="<"     end=">"         contains=@txtContains,@txtAlwaysContains oneline
+"syn region  txtDelims       matchgroup=txtParenthesis start="{"     end="}"         contains=@txtContains,@txtAlwaysContains oneline
+"syn region  txtDelims       matchgroup=txtParenthesis start="\["    end="\]"        contains=@txtContains,@txtAlwaysContains oneline 
+syn match   txtDelims  "[()\[\]{};]"
 
-syn region txtDelims    matchgroup=txtOperator start="<"        end=">"         contains=@txtContains,@txtAlwaysContains oneline
-syn region txtDelims    matchgroup=txtOperator start="{"        end="}"         contains=@txtContains,@txtAlwaysContains oneline
-syn region txtDelims    matchgroup=txtOperator start="\["       end="\]"                contains=@txtContains,@txtAlwaysContains oneline 
-
-syn match txtLink       "\(http\|https\|ftp\)\(\w\|[\-&=,?\:\.\/]\)*"   contains=txtOperator
-
-" Basic smileys
-syn match txtSmile      "[:;=8][\-]\?\([(\/\\)\[\]]\+\|[OoPpDdFf]\+\)"
+" Link
+syn match   txtLink         "\(http\|https\|ftp\)\(\w\|[\-&=,?\:\.\/]\)*"   contains=@txtOperator
 
 " Changelog tags: add, chg, rem, fix
-syn match txtChangelogs         "\<add\>\s*:" contains=txtOperator
-syn match txtChangelogs         "\<chg\>\s*:" contains=txtOperator
-syn match txtChangelogs         "\<rem\>\s*:" contains=txtOperator
-syn match txtChangelogs         "\<del\>\s*:" contains=txtOperator
-syn match txtChangelogs         "\<fix\>\s*:" contains=txtOperator
+syn match   txtChangelogs   "\<add\>\s*:" contains=txtOperator
+syn match   txtChangelogs   "\<chg\>\s*:" contains=txtOperator
+syn match   txtChangelogs   "\<rem\>\s*:" contains=txtOperator
+syn match   txtChangelogs   "\<del\>\s*:" contains=txtOperator
+syn match   txtChangelogs   "\<fix\>\s*:" contains=txtOperator
 
-syn keyword txtTodo todo fixme xxx note
-
-syn keyword txtError error bug
-
-syn keyword txtDebug debug
+syn keyword txtTodo   todo fixme xxx note
+syn keyword txtError  error bug
+syn keyword txtDebug  debug
 
 syn case match
 
 " Define the default highlighting.
-" For version 5.7 and earlier: only when not done already
-" For version 5.8 and later: only when an item doesn't have highlighting yet
-  if version < 508
-    command -nargs=+ HiLink hi link <args>
-  else
-    command -nargs=+ HiLink hi def link <args>
-  endif
-
-  HiLink txtNumber              Number
-  HiLink txtString              Normal
-  HiLink txtOperator            Operator
-  HiLink txtCite                String
-  HiLink txtComments            Comment
-  HiLink txtComment             Comment
-  HiLink txtDelims              Delimiter
-  HiLink txtLink                Special
-  HiLink txtSmile               PreProc
-  HiLink txtError               Error
-  HiLink txtTodo                Todo
-  HiLink txtDebug               Debug
-  HiLink txtChangelogs          Keyword
-
-  delcommand HiLink
+highlight def link txtNumber              Number
+highlight def link txtString              Normal
+highlight def link txtOperator            Number
+highlight def link txtCite                String
+highlight def link txtBlockComment        Ignore
+highlight def link txtComment             Comment
+highlight def link txtDelims              Delimiter
+highlight def link txtLink                Special
+highlight def link txtSmile               PreProc
+highlight def link txtError               Error
+highlight def link txtTodo                Todo
+highlight def link txtDebug               Debug
+highlight def link txtChangelogs          Keyword
 
 let b:current_syntax = "txt"
 " vim: ts=8
